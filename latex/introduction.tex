@@ -35,7 +35,7 @@
 % cscsred, cscsgrey, cscsgreen, cscsblue, cscsbrown, cscspurple, cscsyellow, cscsblack, cscswhite
 
 \author{Ben Cumming, CSCS}
-\title{Introduction to GPUs in HPC\\CSCS Summer School 2019}
+\title{Introduction to GPUs in HPC\\CSCS Summer School 2020}
 \subtitle{}
 \date{\today}
 
@@ -67,8 +67,8 @@
     We focus on HPC and modern GPU architectures, specifically:
     \begin{itemize}
         \item HPC development for P100 GPUs on Piz Daint;
-        \item Using CUDA toolkit version 8 and above;
-        \item Some features only available on Pascal genertion GPUs
+        \item Using CUDA toolkit version 10 and above;
+        \item Some are available on P100 and later GPUs.
         \begin{itemize}
             \item  e.g. double precision atomics.
         \end{itemize}
@@ -83,7 +83,11 @@
     \begin{itemize}
         \item No GPU or graphics experience required.
         \item I assume C++11 knowledge.
-        \item The generic GPU programming concepts from CUDA are useful for people interested in OpenACC, OpenCL and GPU-ready libraries.
+        \item The generic GPU programming concepts from CUDA are useful for when:
+        \begin{itemize}
+            \item Developing with OpenACC, OpenCL and GPU-ready libraries.
+            \item Using ML frameworks that use GPU for compute.
+        \end{itemize}
     \end{itemize}
 \end{frame}
 
@@ -97,14 +101,15 @@
     \begin{info}{There is a trend towards more parallelism ``on node''}
         \emph{Multi-core CPUs} get more cores and wider vector lanes:
         \begin{itemize}
-            \item 28-core$\times$2 thread SkyLake processors from Intel;
-            \item 22-core$\times$4 thread Power9 processors from IBM.
+            \item 24-core$\times$SMT 4$\times$SIMD 128: IBM Power9 (2017).
+            \item 28-core$\times$SMT 2$\times$SIMD 512: Intel Xeon (2020);
+            \item 48-core$\times$SMT 1$\times$SIMD 512: Fujitsu ARM A64FX (2020).
         \end{itemize}
         \emph{Many-core Accelerators} with many highly-specialized cores and high-bandwidth memory:
         \begin{itemize}
-            \item NVIDIA P100 GPUs with 3584 cores;
-            \item NVIDIA V100 GPUs with 5120 cores;
-            \item Intel KNL with 64 cores $\times$ 4 threads.
+            \item NVIDIA P100 GPUs with 3584 cores (2016);
+            \item NVIDIA V100 GPUs with 5120 cores (2017);
+            \item NVIDIA A100 GPUs with 8192 cores (2020).
         \end{itemize}
     \end{info}
 
@@ -134,7 +139,7 @@
         \item With little/no effort, each new generation of processor bought significant speedups.
     \end{itemize}
 
-    \dots  but there is no such thing as a free lunch
+    \dots  but there is no such thing as a free lunch.
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -151,9 +156,9 @@
 \begin{frame}[fragile]{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \begin{center}
-        \includegraphics[width=\textwidth]{./images/frequency.pdf}
+        \includegraphics[width=\textwidth]{./images/fp-perf.pdf}
 
-        \textbf{The problem}: power $\propto$ frequency$^3$
+        Floating point performance per core is not keeping up \dots
     \end{center}
 \end{frame}
 
@@ -161,9 +166,11 @@
 \begin{frame}[fragile]{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \begin{center}
-        \includegraphics[width=\textwidth]{./images/fp-perf.pdf}
+        \includegraphics[width=\textwidth]{./images/frequency.pdf}
 
-        Floating point performance per core is not keeping up
+        Clock speeds peaked around 2005.
+
+        \textbf{The problem}: power $\propto$ frequency$^3$
     \end{center}
 \end{frame}
 
@@ -208,28 +215,27 @@
         \item The number of cores in both CPUs and accelerators will continue to increase
         \item The width of vector lanes in CPUs will increase
         \begin{itemize}
-            \item Currently 4 doubles for AVX
-            \item Increase to 8 double for AVX512 (KNL and Skylake)
+            \item 8$\times$SIMD double for AVX512 and SVE (Intel and ARM).
         \end{itemize}
         \item The number of threads per core will increase
         \begin{itemize}
-            \item Intel Haswell: 2 threads/core
+            \item Intel SkyLake: 2 threads/core
             \item Intel KNL: 4 threads/core
             \item IBM Power-8: 8 threads/core
         \end{itemize}
     \end{itemize}
 \end{frame}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\begin{frame}[fragile]{Memory is slow}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%    Memory is much slower than processors
-%    \begin{itemize}
-%        \item For both CPU and GPU the latency of fetching a cache-line from memory is 100s of cycles\dots
-%        \item \dots 100s of cycles that the processor is stalled
-%        \item Latency has to be hidden or reduced to minimise stalling
-%    \end{itemize}
-%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Memory is slow}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Memory is much slower than processors
+    \begin{itemize}
+        \item For both CPU and GPU the latency of fetching a cache-line from memory is 100s of cycles\dots
+        \item \dots 100s of cycles that the processor is stalled
+        \item Latency has to be hidden or reduced to minimise stalling
+    \end{itemize}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}[fragile]{Low Latency or High Throughput?}
@@ -284,12 +290,13 @@
         \item Existing code has to be rewritten or refactored.
     \end{itemize}
 
-    \begin{info}{\dots and compute nodes are under-utilized}
-        \begin{itemize}
-            \item Users are not getting the most out of allocations.
-            \item The amount of parallelism on-node is only going to increase!
-        \end{itemize}
-    \end{info}
+    On-node parallelism will continue to increase:
+    \begin{itemize}
+        \item Piz Daint @ CSCS (2015): 1 GPU + 1 CPU.
+        \item Marconi100 @ CINECA (2020): 4 GPU + 2 CPU.
+        \item EUROHPC pre-exascale (2021): 4 GPU + 1 CPU.
+        \item US ECP exascale (2021-2023): 4 GPU + 1 CPU.
+    \end{itemize}
 \end{frame}
 
 
@@ -304,8 +311,8 @@
         \end{itemize}
         \item This course will be about one type of many-core architecture NVIDIA GPUs
         \begin{itemize}
-            \item CUDA is GPU-specific
-            \item However many concepts are universally applicable to other vector and many-core architectures (e.g. Xeon Phi)
+            \item CUDA is GPU-specific.
+            \item Conceptually very close to HIP, OpenCL and SYCL (AMD/NVIDIA/Intel).
         \end{itemize}
     \end{itemize}
 \end{frame}
