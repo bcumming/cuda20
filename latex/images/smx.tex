@@ -1,0 +1,35 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows,backgrounds,fit,shapes.geometric,calc}
+\usetikzlibrary{pgfplots.groupplots}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{color}
+
+\lstset{
+    language=[ANSI]C++,
+    basicstyle=\small\ttfamily,
+    identifierstyle=\color{black}\small\ttfamily,
+    keywordstyle=\color{red}\small\ttfamily,
+    commentstyle=\color{green!30!black}\bf\small\ttfamily,
+    breaklines=true
+}
+
+\tikzstyle{bwarrow}=[line width=1mm,draw=blue,-triangle 45,postaction={draw, line width=3mm, shorten >=4mm, -}]
+
+\tikzset{
+    %Define standard arrow tip
+    >=stealth',
+    % Define arrow style
+    pil/.style={
+           ->,
+           thick,
+           shorten <=2pt,
+           shorten >=2pt,}
+}
+
+\input{smx_raw.tex}

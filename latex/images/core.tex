@@ -1,0 +1,255 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows,backgrounds,fit,shapes.geometric,calc}
+\usetikzlibrary{pgfplots.groupplots}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{color}
+
+\lstset{
+    language=[ANSI]C++,
+    basicstyle=\small\ttfamily,
+    identifierstyle=\color{black}\small\ttfamily,
+    keywordstyle=\color{red}\small\ttfamily,
+    commentstyle=\color{green!30!black}\bf\small\ttfamily,
+    breaklines=true
+}
+
+\tikzset{
+    %Define standard arrow tip
+    >=stealth',
+    % Define arrow style
+    pil/.style={
+           ->,
+           thick,
+           shorten <=2pt,
+           shorten >=2pt,}
+}
+
+\newcommand{\nodewidth}{1cm}
+\newcommand{\nodeheight}{1cm}
+\newcommand{\memwidth}{12cm}
+\newcommand{\memheight}{2cm}
+
+\begin{document}
+\begin{tikzpicture}[x=0cm, y=0cm, node distance=0 cm,outer sep = 0pt]
+\tikzstyle{core}=[draw, rectangle,  minimum height=\nodeheight, minimum width=\nodewidth, fill=white,anchor=north west]
+\tikzstyle{memory}=[draw=black!10, rectangle,  minimum height=\memheight, minimum width=\memwidth, fill=yellow!60,anchor=north west]
+
+\node[core] (core0) [fill=green!50,draw=black] at(0,0) {};
+\node[core] (core1) [right = of core0] {};
+\node[core] (core2) [right = of core1] {};
+\node[core] (core3) [right = of core2] {};
+\node[core] (core4) [right = of core3] {};
+\node[core] (core5) [right = of core4] {};
+\node[core] (core6) [right = of core5] {};
+\node[core] (core7) [right = of core6] {};
+\node[core] (core8) [right = of core7] {};
+\node[core] (core9) [right = of core8] {};
+\node[core] (core10) [right = of core9] {};
+\node[core] (core11) [right = of core10] {};
+\node[core] (core12) [below = of core0] {};
+
+\node[core] (core13) [right = of core12] {};
+\node[core] (core14) [right = of core13] {};
+\node[core] (core15) [right = of core14] {};
+\node[core] (core16) [right = of core15] {};
+\node[core] (core17) [right = of core16] {};
+\node[core] (core18) [right = of core17] {};
+\node[core] (core19) [right = of core18] {};
+\node[core] (core20) [right = of core19] {};
+\node[core] (core21) [right = of core20] {};
+\node[core] (core22) [right = of core21] {};
+\node[core] (core23) [right = of core22] {};
+
+\node[core] (core24) [below = of core12] {};
+\node[core] (core25) [right = of core24] {};
+\node[core] (core26) [right = of core25] {};
+\node[core] (core27) [right = of core26] {};
+\node[core] (core28) [right = of core27] {};
+\node[core] (core29) [right = of core28] {};
+\node[core] (core30) [right = of core29] {};
+\node[core] (core31) [right = of core30] {};
+\node[core] (core32) [right = of core31] {};
+\node[core] (core33) [right = of core32] {};
+\node[core] (core34) [right = of core33] {};
+\node[core] (core35) [right = of core34] {};
+
+\node[core] (core36) [below = of core24] {};
+\node[core] (core37) [right = of core36] {};
+\node[core] (core38) [right = of core37] {};
+\node[core] (core39) [right = of core38] {};
+\node[core] (core40) [right = of core39] {};
+\node[core] (core41) [right = of core40] {};
+\node[core] (core42) [right = of core41] {};
+\node[core] (core43) [right = of core42] {};
+\node[core] (core44) [right = of core43] {};
+\node[core] (core45) [right = of core44] {};
+\node[core] (core46) [right = of core45] {};
+\node[core] (core47) [right = of core46] {};
+
+\node[core] (core48) [below = of core36] {};
+\node[core] (core49) [right = of core48] {};
+\node[core] (core50) [right = of core49] {};
+\node[core] (core51) [right = of core50] {};
+\node[core] (core52) [right = of core51] {};
+\node[core] (core53) [right = of core52] {};
+\node[core] (core54) [right = of core53] {};
+\node[core] (core55) [right = of core54] {};
+\node[core] (core56) [right = of core55] {};
+\node[core] (core57) [right = of core56] {};
+\node[core] (core58) [right = of core57] {};
+\node[core] (core59) [right = of core58] {};
+
+\node[core] (core60) [below = of core48] {};
+\node[core] (core61) [right = of core60] {};
+\node[core] (core62) [right = of core61] {};
+\node[core] (core63) [right = of core62] {};
+\node[core] (core64) [right = of core63] {};
+\node[core] (core65) [right = of core64] {};
+\node[core] (core66) [right = of core65] {};
+\node[core] (core67) [right = of core66] {};
+\node[core] (core68) [right = of core67] {};
+\node[core] (core69) [right = of core68] {};
+\node[core] (core70) [right = of core69] {};
+\node[core] (core71) [right = of core70] {};
+
+\node[core] (core72) [below = of core60] {};
+\node[core] (core73) [right = of core72] {};
+\node[core] (core74) [right = of core73] {};
+\node[core] (core75) [right = of core74] {};
+\node[core] (core76) [right = of core75] {};
+\node[core] (core77) [right = of core76] {};
+\node[core] (core78) [right = of core77] {};
+\node[core] (core79) [right = of core78] {};
+\node[core] (core80) [right = of core79] {};
+\node[core] (core81) [right = of core80] {};
+\node[core] (core82) [right = of core81] {};
+\node[core] (core83) [right = of core82] {};
+
+\node[core] (core84) [below = of core72] {};
+\node[core] (core85) [right = of core84] {};
+\node[core] (core86) [right = of core85] {};
+\node[core] (core87) [right = of core86] {};
+\node[core] (core88) [right = of core87] {};
+\node[core] (core89) [right = of core88] {};
+\node[core] (core90) [right = of core89] {};
+\node[core] (core91) [right = of core90] {};
+\node[core] (core92) [right = of core91] {};
+\node[core] (core93) [right = of core92] {};
+\node[core] (core94) [right = of core93] {};
+\node[core] (core95) [right = of core94] {};
+
+\node[core] (core96)  [below = of core84] {};
+\node[core] (core97)  [right = of core96] {};
+\node[core] (core98)  [right = of core97] {};
+\node[core] (core99)  [right = of core98] {};
+\node[core] (core100) [right = of core99] {};
+\node[core] (core101) [right = of core100] {};
+\node[core] (core102) [right = of core101] {};
+\node[core] (core103) [right = of core102] {};
+\node[core] (core104) [right = of core103] {};
+\node[core] (core105) [right = of core104] {};
+\node[core] (core106) [right = of core105] {};
+\node[core] (core107) [right = of core106] {};
+
+\node[core] (core108)  [below = of core96] {};
+\node[core] (core109)  [right = of core108] {};
+\node[core] (core110)  [right = of core109] {};
+\node[core] (core111)  [right = of core110] {};
+\node[core] (core112) [right = of core111] {};
+\node[core] (core113) [right = of core112] {};
+\node[core] (core114) [right = of core113] {};
+\node[core] (core115) [right = of core114] {};
+\node[core] (core116) [right = of core115] {};
+\node[core] (core117) [right = of core116] {};
+\node[core] (core118) [right = of core117] {};
+\node[core] (core119) [right = of core118] {};
+
+\node[core] (core120)  [below = of core108] {};
+\node[core] (core121)  [right = of core120] {};
+\node[core] (core122)  [right = of core121] {};
+\node[core] (core123)  [right = of core122] {};
+\node[core] (core124) [right = of core123] {};
+\node[core] (core125) [right = of core124] {};
+\node[core] (core126) [right = of core125] {};
+\node[core] (core127) [right = of core126] {};
+\node[core] (core128) [right = of core127] {};
+\node[core] (core129) [right = of core128] {};
+\node[core] (core130) [right = of core129] {};
+\node[core] (core131) [right = of core130] {};
+
+\node[core] (core132)  [below = of core120] {};
+\node[core] (core133)  [right = of core132] {};
+\node[core] (core134)  [right = of core133] {};
+\node[core] (core135)  [right = of core134] {};
+\node[core] (core136) [right = of core135] {};
+\node[core] (core137) [right = of core136] {};
+\node[core] (core138) [right = of core137] {};
+\node[core] (core139) [right = of core138] {};
+\node[core] (core140) [right = of core139] {};
+\node[core] (core141) [right = of core140] {};
+\node[core] (core142) [right = of core141] {};
+\node[core] (core143) [right = of core142] {};
+
+\node[core] (core144)  [below = of core132] {};
+\node[core] (core145)  [right = of core144] {};
+\node[core] (core146)  [right = of core145] {};
+\node[core] (core147)  [right = of core146] {};
+\node[core] (core148) [right = of core147] {};
+\node[core] (core149) [right = of core148] {};
+\node[core] (core150) [right = of core149] {};
+\node[core] (core151) [right = of core150] {};
+\node[core] (core152) [right = of core151] {};
+\node[core] (core153) [right = of core152] {};
+\node[core] (core154) [right = of core153] {};
+\node[core] (core155) [right = of core154] {};
+
+\node[core] (core156)  [below = of core144] {};
+\node[core] (core157)  [right = of core156] {};
+\node[core] (core158)  [right = of core157] {};
+\node[core] (core159)  [right = of core158] {};
+\node[core] (core160) [right = of core159] {};
+\node[core] (core161) [right = of core160] {};
+\node[core] (core162) [right = of core161] {};
+\node[core] (core163) [right = of core162] {};
+\node[core] (core164) [right = of core163] {};
+\node[core] (core165) [right = of core164] {};
+\node[core] (core166) [right = of core165] {};
+\node[core] (core167) [right = of core166] {};
+
+\node[core] (core168)  [below = of core156] {};
+\node[core] (core169)  [right = of core168] {};
+\node[core] (core170)  [right = of core169] {};
+\node[core] (core171)  [right = of core170] {};
+\node[core] (core172) [right = of core171] {};
+\node[core] (core173) [right = of core172] {};
+\node[core] (core174) [right = of core173] {};
+\node[core] (core175) [right = of core174] {};
+\node[core] (core176) [right = of core175] {};
+\node[core] (core177) [right = of core176] {};
+\node[core] (core178) [right = of core177] {};
+\node[core] (core179) [right = of core178] {};
+
+\node[core] (core180)  [below = of core168] {};
+\node[core] (core181)  [right = of core180] {};
+\node[core] (core182)  [right = of core181] {};
+\node[core] (core183)  [right = of core182] {};
+\node[core] (core184) [right = of core183] {};
+\node[core] (core185) [right = of core184] {};
+\node[core] (core186) [right = of core185] {};
+\node[core] (core187) [right = of core186] {};
+\node[core] (core188) [right = of core187] {};
+\node[core] (core189) [right = of core188] {};
+\node[core] (core190) [right = of core189] {};
+\node[core] (core191) [right = of core190] {};
+
+\node[memory] (memory) at(0,-16cm) {\bfseries \Huge shared memory/L1 cache};
+
+\end{tikzpicture}
+
+\end{document}

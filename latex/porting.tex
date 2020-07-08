@@ -1,0 +1,258 @@
+\documentclass[aspectratio=43]{beamer}
+% Theme works only with a 4:3 aspect ratio
+\usetheme{CSCS}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{pgfplots.groupplots,spy,patterns}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tcolorbox}
+\usepackage{anyfontsize}
+\usepackage{xspace}
+\usepackage{graphicx}
+
+% define footer text
+\newcommand{\footlinetext}{Introduction to GPUs in HPC}
+
+% Select the image for the title page
+\newcommand{\picturetitle}{cscs_images/image5.pdf}
+
+% fonts for maths
+\usefonttheme{professionalfonts}
+\usefonttheme{serif}
+
+% source code listing
+\newcommand{\axpy}{{\ttfamily axpy}\xspace}
+
+% set indent to a more reasonable level (so that itemize can be used in columns)
+\setlength{\leftmargini}{20pt}
+
+\DeclareTextFontCommand{\emph}{\bfseries\color{blue!70!black}}
+
+% Please use the predifined colors:
+% cscsred, cscsgrey, cscsgreen, cscsblue, cscsbrown, cscspurple, cscsyellow, cscsblack, cscswhite
+
+\author{Ben Cumming, CSCS}
+\title{Introduction to GPUs in HPC}
+\subtitle{}
+\date{\today}
+
+\begin{document}
+
+% TITLE SLIDE
+\cscstitle
+
+%++++++++++++++++++++++++++++++++
+\cscschapter{Using GPUs in Your Application}
+%++++++++++++++++++++++++++++++++
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \centering
+    Rule \#1: \emph{don't} develop your own GPU code!
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Libraries}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    There are many open libraries for GPUs.
+    \begin{itemize}
+        \item \href{https://developer.nvidia.com/cublas}{\textcolor{blue}{cuBLAS}}: Dense linear algebra primitives.
+        \item \href{https://developer.nvidia.com/thrust}{\textcolor{blue}{Thrust}}: C++ STL-like algorithms and containers.
+        \item \href{https://developer.nvidia.com/thrust}{\textcolor{blue}{cuRAND}} and \href{http://www.thesalmons.org/john/random123/releases/latest/docs/}{\textcolor{blue}{Random123}}: Random numbers.
+        \item \href{https://developer.nvidia.com/cufft}{\textcolor{blue}{cuFFT}}: FFT
+        \item \href{https://github.com/kokkos/kokkos}{\textcolor{blue}{Kokkos}}: Generic performance portable parallel motifs.
+    \end{itemize}
+    \dots And many more!
+
+    \vspace{1cm}
+
+    Take some time to investigate what is available before starting.
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{You are going to write your own code?}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \begin{info}{Directives}
+        \begin{itemize}
+            \item OpenACC and OpenMP define \emph{directives} that can be used to instruct the compiler how to generate GPU code.
+            \item In theory the easiest path for porting.
+        \end{itemize}
+    \end{info}
+
+    \begin{info}{GPU-specific Languages}
+        \begin{itemize}
+            \item Languages designed for GPU programming.
+            \item Maximum flexibility and performance.
+            \item For example: CUDA, OpenCL and Sycl.
+        \end{itemize}
+    \end{info}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Things to consider}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Before starting on a GPU implementation, it pays to ask some questions and do some preliminary exploration:
+    \begin{enumerate}
+        \item Is my program computationally or bandwidth intensive?
+        \item Does it have enough parallel work to utilize the GPU?
+        \item Must I change algorithms to expose enough parallelelism?
+        \item Are there serial bottlenecks that will limit scaling?
+        \item Is the pain worth the gain?
+    \end{enumerate}
+
+    \begin{itemize}
+        \item Questions 1, 2 and 3 will be discussed in this course.
+        \item Question 4 will be considered briefly here.
+        \item Questions 5 requires answers for 1--4.
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Limitations to parallel speedup}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{itemize}
+        \item
+            Parallel speedup is limited by\ \emph{the proportion of serial work} in your code.
+        \item
+            \emph{Amdahl's law} defines the \emph{maximum possible speedup} when only parts of the code can be parallelised
+            \begin{equation*}
+                t_n = t_1 \left( p+\frac{(1-p)}{n} \right),
+            \end{equation*}
+            where $t_n$ is time to solution for $n$ threads and $p\in[0,1]$ is the proportion of sequential code.
+        \item The limit on time to solution is $\lim_{n\to\infty}=p t_1$
+        \begin{itemize}
+            \item e.g. 1\% of serial code gives a maximum 100$\times$ speedup.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Amdahl illustrated}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tikzpicture}
+    \pgfplotsset{footnotesize}
+    \begin{axis}[
+        height=0.6\textwidth,
+        width=\textwidth,
+        xmin=1,xmax=128,
+        ymin=0,ymax=128,
+        xtick={10,20,30,40,50,60,70,80,90,100,110,120,130},
+        %ytick={0,1,2,3,4,5,6,7,8},
+        xlabel=threads,
+        ylabel=speedup,
+        legend style = {at={(0,1)}, anchor=north west},
+        every axis y label/.style=
+            {at={(ticklabel cs:0.5)},rotate=90,anchor=near ticklabel},
+        grid=major]
+        \addplot[color=blue,thick]  table[x=n,y=effec50]  {./plots/amdahl.tbl};
+        \addplot[color=red,thick]  table[x=n,y=effec80]  {./plots/amdahl.tbl};
+        \addplot[color=green!50!black,thick]  table[x=n,y=effec90]  {./plots/amdahl.tbl};
+        \addplot[color=purple,thick]  table[x=n,y=effec95]  {./plots/amdahl.tbl};
+        \addplot[color=black,thick]  table[x=n,y=effec98]  {./plots/amdahl.tbl};
+        \addplot[color=cyan,thick]  table[x=n,y=effec99]  {./plots/amdahl.tbl};
+        \addplot[color=black,dashed,thick]  table[x=n,y=effec100]  {./plots/amdahl.tbl};
+        \legend{50\%, 80\%, 90\%, 95\%, 98\%, 99\%, perfect};
+    \end{axis}
+\end{tikzpicture}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{CUDA}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CUDA is a \emph{parallel computing platform and API}
+    \begin{itemize}
+        \item For CUDA-enabled Nvidia GPUs.
+    \end{itemize}
+    We use CUDA as short hand for CUDA C/C++ and API
+    \begin{itemize}
+        \item CUDA C++ is a \emph{superset} of C++
+        \item Adds keywords for writing kernels to run on the GPU.
+        \item Adds syntax for launching kernels on the GPU.
+    \end{itemize}
+    The CUDA toolkit is more than a programming language:
+    \begin{itemize}
+        \item Runtime API for managing GPU resources and execution.
+        \item Tools including profilers and debuggers.
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Compiling CUDA}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CUDA code is compiled with the \emph{nvcc} compiler driver
+    \begin{itemize}
+        \item source files have \lstterm{.cu} extension
+        \item headers have \lstterm{.h}, \lstterm{.hpp}, \lstterm{.hcu} extension.
+    \end{itemize}
+    CUDA compilation involves multiple splitting, compilation, preprocessing and merging steps
+    \begin{itemize}
+        \item nvcc hides this complexity from the user.
+        \item It closely mimics the interface of the GNU compiler.
+        \item Behind the scenes it:
+        \begin{itemize}
+            \item uses GCC to compile the code that runs on CPU;
+            \item and compiles the GPU code separately.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Compiling CUDA}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Example CUDA compilation
+    \begin{terminal}{}
+    \begin{lstlisting}[style=terminal]
+> nvcc -arch=sm_60 -lineinfo -O2 -std=c++11 -g -o foo foo.cu
+    \end{lstlisting}
+    \end{terminal}
+    Some flags are for \emph{device} code generation:
+    \begin{itemize}
+        \item \lst{-arch=sm_60} target GPU architecture (Pascal)
+        \item \lst{-lineinfo} debug information for device code.
+    \end{itemize}
+    Some are for \emph{host}:
+    \begin{itemize}
+        \item \lst{-g} debug information for host code.
+    \end{itemize}
+    And some are for both \emph{host and device}:
+    \begin{itemize}
+        \item \lst{-O2} optimization level
+        \item \lst{-std=c++11} target language
+        \item \lst{-o foo} name of executable.
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Getting Started on Piz Daint}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    In this exercise we will get introduced to Daint and make sure that everybody is set up.
+
+    \begin{terminal}{}
+        \begin{lstlisting}[style=terminal]
+# log on to daint with your course username & password
+> ssh -X <your account name>@daint
+
+# get one node on the course reservation for 60 minutes
+> salloc -Cgpu --reservation=course -t60
+
+# go to scratch and get the course material
+> cd $SCRATCH/SummerSchool2019
+> git pull
+
+# compile and test the demo
+> cd topics/cuda/practicals/demos
+> cat hello.cu
+> module load gcc cudatoolkit
+> nvcc -arch=sm_60 hello.cu -o hello
+> srun ./hello
+        \end{lstlisting}
+    \end{terminal}
+\end{frame}
+
+\end{document}
+

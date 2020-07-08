@@ -1,0 +1,38 @@
+--------------------
+setup & environment
+--------------------
+
+# log in and allocate a node with GPU for 1 hour
+ssh daint
+salloc -C gpu
+
+# load cuda 8
+module load cudatoolkit
+
+# loads gcc/5.3.0, which works with cuda toolkit
+module load gcc
+
+git clone https://github.com/eth-cscs/???.git
+
+--------------------
+points to make
+--------------------
+compiling for Pascal. Currently we don't discuss nvcc much.
+-arch=sm_60
+
+--------------------
+unified memory
+--------------------
+
+- the managed example is 4x slower
+    - can we run nvprof and look at page faults?
+    - can we contrive an example where it starts to pay off, e.g. update a handful of values in between
+
+to profile:
+
+srun nvprof -o managed.nvvp --unified-memory-profiling per-process-device --profile-from-start off ./managed 20
+    --profile-from-start off                      : obvious
+    --unified-memory-profiling per-process-device : record both CPU and GPU page faults (by default we get only GPU faults)
+    -o managed.nvvp                               : name of file to save profile output in
+
+

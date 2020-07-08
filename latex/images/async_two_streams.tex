@@ -1,0 +1,78 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows,backgrounds,fit,shapes.geometric,calc}
+\usetikzlibrary{pgfplots.groupplots}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{color}
+\usepackage{amsmath}
+
+\lstset{
+    language=[ANSI]C++,
+    basicstyle=\small\ttfamily,
+    identifierstyle=\color{black}\small\ttfamily,
+    keywordstyle=\color{red}\small\ttfamily,
+    commentstyle=\color{green!30!black}\bf\small\ttfamily,
+    breaklines=true
+}
+
+\tikzset{
+    %Define standard arrow tip
+    >=stealth',
+    % Define arrow style
+    pil/.style={
+           ->,
+       thick,}
+           %shorten <=2pt,
+           %shorten >=2pt,}
+}
+
+\newcommand{\execwidth}{2cm}
+\newcommand{\kernelwidth}{1.5cm}
+
+\begin{document}
+\begin{tikzpicture}[x=0cm, y=0cm, node distance=0 cm,outer sep = 0pt]
+\tikzstyle{cpukernel}=[
+                  draw=blue,
+                  rectangle,
+                  minimum width=\execwidth,
+                  fill=blue!30,
+                  anchor=north west]
+
+\tikzstyle{gpukernel}=[
+                  draw=green!50!black,
+                  rectangle,
+                  minimum width=\kernelwidth,
+                  fill=green!30,
+                  anchor=north west]
+
+\node[rectangle] (CPUlabel)  at(1cm,0.25cm) [anchor=south] {{host}};
+\node[rectangle] (GPUlabel)  at(4.1cm,0.25cm) [anchor=south] {{GPU}};
+
+\node[cpukernel] (launch1) at(0,0) [minimum height=0.2cm] {\tiny launch kernel\_1};
+\node[cpukernel] (launch2) [below = 0.05cm of launch1, minimum height=0.2cm] {\tiny launch kernel\_2};
+\node[cpukernel] (launch3) [below = 0.05cm of launch2, minimum height=0.2cm] {\tiny launch kernel\_3};
+
+\node[rectangle] (stream1)  at(3.25cm,-0.3cm) [anchor=south] {\color{green!30!black}{stream\_1}};
+\node[rectangle] (stream2)  at(4.95cm,-0.3cm) [anchor=south] {\color{green!30!black}{stream\_2}};
+
+\node[gpukernel] (kernel1) at(2.5cm,-0.4cm) [minimum height=2cm] {kernel\_1};
+\node[gpukernel] (kernel2) at(4.2cm,-1cm) [minimum height=4cm] {kernel\_2};
+\node[gpukernel] (kernel3) [below = 0.05cm of kernel1, minimum height=1.5cm] {kernel\_3};
+
+\path[pil,->,black!70,dashed] (2.25cm,0.25cm)  edge (2.25cm, -5.1cm);
+\path[green!30!black, thick] (4.1cm,0.2cm) edge (4.1cm, -5.2cm);
+\node[rectangle] (timelabel)  at(2.25cm,-5.1cm) [anchor=north] {\footnotesize time};
+
+\path[pil,->,blue] (launch1.south east)  edge (kernel1.north west);
+\path[pil,->,blue] (launch2.south east)  edge (kernel2.north west);
+\path[pil,->,blue] (launch3.south east)  edge (kernel3.north west);
+
+\end{tikzpicture}
+
+\end{document}
+

@@ -1,0 +1,473 @@
+\documentclass[aspectratio=43]{beamer}
+% Theme works only with a 4:3 aspect ratio
+\usetheme{CSCS}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{pgfplots.groupplots,spy,patterns}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tcolorbox}
+\usepackage{anyfontsize}
+\usepackage{xspace}
+\usepackage{graphicx}
+
+% define footer text
+\newcommand{\footlinetext}{Introduction to GPUs in HPC}
+
+% Select the image for the title page
+\newcommand{\picturetitle}{cscs_images/image5.pdf}
+
+% fonts for maths
+\usefonttheme{professionalfonts}
+\usefonttheme{serif}
+
+% source code listing
+\newcommand{\axpy}{{\ttfamily axpy}\xspace}
+
+% set indent to a more reasonable level (so that itemize can be used in columns)
+\setlength{\leftmargini}{20pt}
+
+\DeclareTextFontCommand{\emph}{\bfseries\color{blue!70!black}}
+
+% Please use the predifined colors:
+% cscsred, cscsgrey, cscsgreen, cscsblue, cscsbrown, cscspurple, cscsyellow, cscsblack, cscswhite
+
+\author{Ben Cumming, CSCS}
+\title{Working with GPU memory}
+\subtitle{}
+\date{\today}
+
+\begin{document}
+
+% TITLE SLIDE
+\cscstitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Memory on a Piz Daint Node}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{center}
+        \includegraphics[width=0.9\textwidth]{./images/node.pdf}
+    \end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Host and Device Memory Spaces}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{itemize}
+        \item The GPU has separate memory to the host CPU
+            \begin{itemize}
+                \item The host CPU has 64 GB of DDR4 \emph{host memory}
+                \item The P100 GPU has 16 GB of HBM2 \emph{device memory}
+            \end{itemize}
+        \item Kernels executing on the GPU only have access to device memory
+            \begin{itemize}
+                \item Kernel accesses to host memory are copied to GPU memory first over the (slow) PCIe connection.
+            \end{itemize}
+
+            \begin{center}
+                \begin{tabular}{lcr}
+                    \textbf{host $\leftrightarrow$ device} & 11$\times$2 GB/s & PCIe gen3 \\
+                    \textbf{host memory}                   & 45 GB/s  & DDR4      \\
+                    \textbf{device memory}                 & 558 GB/s & HBM2
+                \end{tabular}
+            \end{center}
+
+        \item \emph{Optimization tip}: The massive bandwidth of HBM2 on P100 GPUs can only help if data is in the right memory space \emph{before} computation starts.
+    \end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Unified Memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{center}
+        \includegraphics[width=0.9\textwidth]{./images/node_managed.pdf}
+        \\
+        CUDA unified memory presents a single memory space that can be accessed by both host and GPU code
+    \end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Unified Memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        Unified memory presents a single memory space.
+        \begin{itemize}
+            \item Both CPU and GPU can access the same memory.
+            \item First introduced with CUDA 6 and Keplar.
+            \item Improved with CUDA 8 and Pascal:
+            \begin{itemize}
+                \item All host and device memory can be addressed
+                \item The \emph{page migration} engine transfers data between GPU and CPU memory as needed
+                \item API provides fine-grained control of page migration
+            \end{itemize}
+            \item Simplifies memory management for GPU programming
+        \end{itemize}
+        \begin{info}{Managed memory is useful for porting to the GPU.}
+            \begin{itemize}
+                \item Not suitable as the default choice of memory management.
+                \item Can lead to negative performance and subtle bugs.
+            \end{itemize}
+        \end{info}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Accessing Memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CUDA uses C pointers to address memory:
+    \begin{center}
+        \centering \lst{double* data = // address to either host, device or managed memory}
+    \end{center}
+        \begin{itemize}
+            \item A pointer can hold an address in
+            \begin{itemize}
+                \item \emph{either} device or host memory
+                \item managed memory that can \emph{migrate} between host and device
+            \end{itemize}
+            \item The \emph{CUDA runtime library} provides functions that can be used to allocate, free and copy managed and device memory.
+        \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Managing Managed Memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{info}{Allocating managed memory}
+        \centering \lst{cudaMallocManaged(void** ptr, size_t size, unsigned flags)}
+    \begin{itemize}
+        \item \lst{size} number of \emph{bytes} to allocate.
+        \item \lst{ptr} points to allocated memory on return.
+        \item \lst{flags} by default is set to \lst{cudaMemAttachGlobal}.
+    \end{itemize}
+    \end{info}
+
+    \begin{info}{Freeing managed memory}
+        \centering \lst{cudaFree(void* ptr)}
+    \end{info}
+
+    \begin{code}{Allocate memory for 100 doubles in managed memory}
+%..................................
+\begin{lstlisting}[style=boxcuda]
+double* v;
+auto bytes = 100*sizeof(double);
+cudaMallocManaged(&v, bytes); // allocate memory
+cudaFree(v);                  // free memory
+\end{lstlisting}
+%..................................
+    \end{code}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Getting started}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    We have to set up the environment before compiling.
+    \begin{lstlisting}[style=terminal]
+> module load daint-gpu
+> module swap PrgEnv-cray PrgEnv-gnu
+> module load cudatoolkit
+> gcc --version
+gcc (GCC) 6.2.0 20160822 (Cray Inc.)
+...
+
+> nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+...
+Cuda compilation tools, release 9.1, V9.1.85
+    \end{lstlisting}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Managed Memory Example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{enumerate}
+        \item open the files \lst{api/managed.cu} and \lst{api/util.hpp}.
+        \item what does \lst{managed.cu} do?
+        \begin{itemize}
+            \item you can use Google!
+        \end{itemize}
+        \item run it with 20 and 22
+    \begin{terminal}{}
+    \begin{lstlisting}[style=terminal]
+> cd topics/cuda/practicals/api
+> make
+> srun ./managed 20
+    \end{lstlisting}
+    \end{terminal}
+        \item does it work?
+        \item run the cuda profiler
+        \begin{terminal}{}
+            \begin{lstlisting}[style=terminal]
+> srun nvprof -o managed.nvvp --profile-from-start off -f
+    ./managed 25
+> nvvp managed.nvvp &
+            \end{lstlisting}
+        \end{terminal}
+    \end{enumerate}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Concurrent Host-Device Memory Access}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{columns}[T]
+        \begin{column}{0.6\textwidth}
+            %\begin{info}{CPU and GPU are asynchronous}
+                The CPU:
+                \begin{itemize}
+                    \item launches the GPU code \lst{gpu_call}
+                    \item executes CPU function \lst{cpu_call}
+                \end{itemize}
+                The GPU:
+                \begin{itemize}
+                    \item executes gpu code asynchronously
+                \end{itemize}
+                The problem:
+                \begin{itemize}
+                    \item both \lst{cpu_call} and \lst{gpu_call} may try to access the same memory
+                \end{itemize}
+                The solution:
+                \begin{itemize}
+                    \item synchronize calls between host and device
+                \end{itemize}
+            %\end{info}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{codecolumn}{application code}
+                \begin{lstlisting}[style=boxcudatiny]
+gpu_call@<<<@...@>>>@();
+cpu_call();
+                \end{lstlisting}
+            \end{codecolumn}
+            \includegraphics[width=\textwidth]{./images/async_simple.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Concurrent Host-Device Memory Access}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    The CPU can't access managed memory at the same time a GPU kernel is accessing it:
+    \begin{itemize}
+        \item Doing so causes a segmentation faults or undefined behavior.
+        \item To test for synchronization issues run with an environment variable
+        \begin{terminal}{}
+            \begin{lstlisting}[style=terminal]
+    > export CUDA_LAUNCH_BLOCKING=1
+            \end{lstlisting}
+        \end{terminal}
+    \item The CUDA API function \lst{cudaDeviceSynchronize} can be used to force synchronization.
+    \end{itemize}
+    \begin{code}{}
+        \begin{lstlisting}[style=boxcudatiny]
+gpu_call@<<<@...@>>>@();
+cudaDeviceSynchronize();
+cpu_call();
+        \end{lstlisting}
+    \end{code}{}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Managed Memory Debugging}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{enumerate}
+        \item Test if concurrent host-device memory access caused the incorrect results in the \lst{api/managed.cu} example.
+        \item Can you fix the issue by adding one \lst{cudaDeviceSynchronize()} call?
+        \item does the profile from nvprof look different?
+    \end{enumerate}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Allocating Device Memory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    It is possible to allocate host and device memory directly
+    \begin{itemize}
+        \item Explicitly allocate memory on device.
+        \begin{itemize}
+            \item can't be read from host.
+        \end{itemize}
+        \item Manually copy data to and from host.
+        \item For memory that should always reside on device.
+        \item The programmer can optimize memory transfers by hand.
+        \begin{itemize}
+            \item with effort, you can get the best performance this way.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{info}{Allocating device memory}
+        \centering \lst{cudaMalloc(void** ptr, size_t size)}
+    \begin{itemize}
+        \item \lst{size} number of \emph{bytes} to allocate
+        \item \lst{ptr} points to allocated memory on return
+    \end{itemize}
+    \end{info}
+
+    \begin{info}{Freeing device memory}
+        \centering \lst{cudaFree(void* ptr)}
+    \end{info}
+
+    \begin{code}{Allocate memory for 100 doubles on device}
+%..................................
+        \begin{lstlisting}[style=boxcuda]
+double* v; // C pointer that will point to device memory
+auto bytes = 100*sizeof(double); // size in bytes!
+cudaMalloc(&v, bytes); // allocate memory
+cudaFree(v);           // free memory
+\end{lstlisting}
+%..................................
+    \end{code}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{info}{Perform blocking copy (host waits for copy to finish)}
+        \centering \lst{cudaMemcpy(void *dst, void *src, size_t size, cudaMemcpyKind kind)}
+    \begin{itemize}
+        \item \lst{dst} destination pointer
+        \item \lst{src} source pointer
+        \item \lst{size} number of \emph{bytes} to copy to \lst{dst}
+        \item \lst{kind} enumerated type specifying \emph{direction} of copy:
+            \\ one of
+            \lst{cudaMemcpyHostToDevice}, \lst{cudaMemcpyDeviceToHost}, \lst{cudaMemcpyDeviceToDevice}, \lst{cudaMemcpyHostToHost}
+    \end{itemize}
+    \end{info}
+
+    \begin{code}{Copy 100 doubles to device, then back to host}
+%..................................
+        \begin{lstlisting}[style=boxcuda]
+auto size = 100*sizeof(double); // size in bytes
+double *v_d;
+cudaMalloc(&v_d, size);              // allocate on device
+double *v_h = (double*)malloc(size); // allocate on host
+cudaMemcpy(v_d, v_h, size, cudaMemcpyHostToDevice);
+cudaMemcpy(v_h, v_d, size, cudaMemcpyDeviceToHost);
+\end{lstlisting}
+%..................................
+    \end{code}
+\end{frame}
+
+%%%%
+\begin{frame}[fragile]{}
+
+    \begin{info}{Errors happen\ldots}
+        All API functions return error codes that indicate either:
+        \begin{itemize}
+            \item success;
+            \item an error in the API call;
+            \item an error in an earlier asynchronous call.
+        \end{itemize}
+        The return value is the enum type \lst{cudaError_t}
+        \begin{itemize}
+            \item e.g. \lst{cudaError_t status = cudaMalloc(&v, 100);}
+            \begin{itemize}
+                \item status is \{\lst{cudaSuccess}, \lst{cudaErrorMemoryAllocation}\}
+            \end{itemize}
+        \end{itemize}
+    \end{info}
+
+    \begin{info}{Handling errors}
+        \centering \lst{const char* cudaGetErrorString(status)}
+        \begin{itemize}
+            \item returns a string describing status
+        \end{itemize}
+        \centering \lst{cudaError_t cudaGetLastError()}
+        \begin{itemize}
+            \item returns the last error
+            \item resets status to \lst{cudaSuccess}
+        \end{itemize}
+    \end{info}
+
+\end{frame}
+
+%%%%
+\begin{frame}[fragile]{}
+
+    \begin{code}{Copy 100 doubles to device \emph{with error checking}}
+%..................................
+        \begin{lstlisting}[style=boxcudatiny]
+double *v_d;
+auto size = sizeof(double)*100;
+double *v_host = (double*)malloc(size);
+cudaError_t status;
+
+status = cudaMalloc(&v_d, size);
+if(status != cudaSuccess) {
+  printf("cuda error : %s\n", cudaGetErrorString(status));
+  exit(1);
+}
+
+status = cudaMemcpy(v_d, v_h, size, cudaMemcpyHostToDevice);
+if(status != cudaSuccess) {
+  printf("cuda error : %s\n", cudaGetErrorString(status));
+  exit(1);
+}
+        \end{lstlisting}
+%..................................
+    \end{code}
+
+    \begin{info}{It is essential to test for errors}
+        But it is tedious and obfuscates our source code if it is done in line for every API and kernel call\ldots
+    \end{info}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Device Memory API}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Open \lst{topics/cuda/practicals/api/util.hpp}
+    \begin{enumerate}
+        \item what does \lst{cuda_check_status()} do?
+        \item look at the template wrappers \lst{malloc_host} \& \lst{malloc_device}
+        \begin{itemize}
+            \item what do they do?
+            \item what are the benefits over using \lst{cudaMalloc} and \lst{free} directly?
+            \item do we need corresponding functions for \lst{cudaFree} and \lst{free}?
+        \end{itemize}
+
+        \item write a wrapper around \lst{cudaMemcpy} for copying data \texttt{host$\rightarrow$device} \& \texttt{device$\rightarrow$host}
+        \begin{itemize}
+            \item remember to check for errors!
+        \end{itemize}
+
+        \item compile the test and run
+        \begin{itemize}
+            \item it will pass with no errors on success
+        \end{itemize}
+
+    \vspace{-5pt}
+\begin{terminal}{}
+\begin{lstlisting}[style=terminal]
+> make explicit
+> srun ./explicit 8
+\end{lstlisting}
+\end{terminal}
+    \end{enumerate}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Device Memory API}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{enumerate}
+        \item How does performance compare with the managed memory version?
+        \item What does the nvprof profile look like?
+        \begin{itemize}
+            \item contrast with managed memory profile.
+        \end{itemize}
+    \end{enumerate}
+
+\begin{terminal}{}
+\begin{lstlisting}[style=terminal]
+> srun nvprof -o explicit.nvvp --profile-from-start off -f
+    ./explicit 25
+> nvvp explicit.nvvp &
+\end{lstlisting}
+\end{terminal}
+
+\end{frame}
+
+\end{document}

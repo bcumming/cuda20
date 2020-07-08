@@ -1,0 +1,84 @@
+\documentclass[tikz,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows,backgrounds,fit,shapes.geometric,calc}
+\usetikzlibrary{pgfplots.groupplots}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{listings}
+\usepackage{lstautogobble}
+\usepackage{color}
+\usepackage{amsmath}
+
+\lstset{
+    language=[ANSI]C++,
+    basicstyle=\small\ttfamily,
+    identifierstyle=\color{black}\small\ttfamily,
+    keywordstyle=\color{red}\small\ttfamily,
+    commentstyle=\color{green!30!black}\bf\small\ttfamily,
+    breaklines=true
+}
+
+\tikzset{
+    %Define standard arrow tip
+    >=stealth',
+    % Define arrow style
+    pil/.style={
+           ->,
+       thick,}
+           %shorten <=2pt,
+           %shorten >=2pt,}
+}
+
+\newcommand{\execwidth}{2cm}
+
+\begin{document}
+\begin{tikzpicture}[x=0cm, y=0cm, node distance=0 cm,outer sep = 0pt]
+\tikzstyle{cpukernel}=[
+                  draw=blue,
+                  rectangle,
+                  minimum width=\execwidth,
+                  fill=blue!30,
+                  anchor=north west]
+
+\tikzstyle{gpukernel}=[
+                  draw=green!50!black,
+                  rectangle,
+                  minimum width=\execwidth,
+                  fill=green!30,
+                  anchor=north west]
+
+% draw header
+\node[rectangle] (CPUlabel)  at(1cm,0.25cm) [anchor=south] {\color{black}{CPU}};
+\node[rectangle] (GPUlabel)  at(3.5cm,0.25cm) [anchor=south] {\color{black}{GPU}};
+
+% draw dividing time line
+\path[pil,->,black!70,dashed] (2.25cm,0.25cm)  edge (2.25cm, -5.5cm);
+\node[rectangle] (timelabel)  at(2.25cm,-5.5cm) [anchor=north] {\footnotesize time};
+
+% draw host and gpu kernels
+\node[cpukernel] (launch1) at(0,0) [minimum height=0.2cm] {\tiny launch gpucall};
+\node[cpukernel] (host1)   [below = 0.05cm of launch1, minimum height=1cm] {cpucall};
+\node[gpukernel] (kernel1) at(2.5cm,-0.4cm) [minimum height=1.5cm] {gpu1};
+
+\path[pil,->,blue] (launch1.south east)  edge (kernel1.north west);
+
+% dividing line between async and synchronized calls
+\path[pil,-,black!70] (0cm,-2.2cm)  edge (4.5cm, -2.2cm);
+
+% draw host and gpu kernels
+\node[cpukernel] (launch2) at(0cm,-2.5cm) [minimum height=0.2cm] {\tiny launch gpucall};
+\node[cpukernel] (host2)   at(0cm,-4.4cm)[minimum height=1cm] {cpucall};
+\node[gpukernel] (kernel2) at(2.5cm,-2.9cm) [minimum height=1.5cm] {gpu1};
+
+\path[pil,->,blue] (launch2.south east)  edge (kernel2.north west);
+
+% dividing line between async and synchronized calls
+\path[pil,-,blue!70,dashed] (0cm,-4.4cm)  edge (4.5cm, -4.4cm);
+
+
+\end{tikzpicture}
+
+\end{document}
+

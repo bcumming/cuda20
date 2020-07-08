@@ -1,0 +1,240 @@
+\documentclass[aspectratio=43]{beamer}
+% Theme works only with a 4:3 aspect ratio
+\usetheme{CSCS}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{pgfplots.groupplots,spy,patterns}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tcolorbox}
+\usepackage{anyfontsize}
+\usepackage{xspace}
+\usepackage{graphicx}
+
+% define footer text
+\newcommand{\footlinetext}{CUDA MiniApp}
+
+% Select the image for the title page
+\newcommand{\picturetitle}{cscs_images/image5.pdf}
+
+% fonts for maths
+\usefonttheme{professionalfonts}
+\usefonttheme{serif}
+
+% source code listing
+\newcommand{\axpy}{{\ttfamily axpy}\xspace}
+
+% set indent to a more reasonable level (so that itemize can be used in columns)
+\setlength{\leftmargini}{20pt}
+
+%\lstset{
+%    language=[ANSI]C++,
+%    basicstyle=\lstinlinefont{blue!30!black},
+%    breaklines=true
+%}
+\lstdefinestyle{terminal}{
+    showstringspaces=false,
+    backgroundcolor=\color{white},
+    basicstyle=\lstfont{black},
+    identifierstyle=\lstfont{black},
+    keywordstyle=\lstfont{black},
+    numberstyle=\lstfont{black},
+    stringstyle=\lstfont{black},
+    commentstyle=\lstfont{black},
+    emph={
+        aprun, make
+    },
+    emphstyle={\lstfont{black}},
+    breaklines=true
+}
+
+\lstset{
+    language=[ANSI]C++,
+    showstringspaces=false,
+    backgroundcolor=\color{white!10!black},
+    basicstyle=\lstfont{white},
+    identifierstyle=\lstfont{white},
+    keywordstyle=\lstfont{magenta!40!white},
+    numberstyle=\lstfont{white},
+    stringstyle=\lstfont{cyan},
+    commentstyle=\lstfont{yellow!30!white},
+    moredelim=[is][\lstfont{green!50!white}]{@}{@},
+    emph={
+        cudaMalloc, cudaFree,
+        cudaMallocHost, cudaFreeHost,
+        cudaMemcpyAsync, cudaMemcpy, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
+        cudaSuccess, cudaGetLastError, cudaGetErrorString,
+        cudaErrorMemoryAllocation, cudaError_t,
+        cudaOccupancyMaxPotentialBlockSize,
+        __global__, __shared__, __device__, __host__,
+        __syncthreads,
+        cudaEvent_t, cudaStream_t,
+        cudaEventCreate, cudaEventSynchronize, cudaEventDestroy,
+        cudaEventElapsedTime, cudaEventQuery, cudaEventRecord,
+        cudaStreamWaitEvent,
+        threadIdx, blockIdx, blockDim, gridDim,
+        cudaStream_t, cudaStreamCreate, cudaStreamDestroy,
+        cudaMemcpyDeviceToDevice, cudaMemcpyHostToHost,
+    },
+    emphstyle={\lstfont{green!50!white}},
+    breaklines=true
+}
+
+\definecolor{codenumber}{rgb}{0.5,0.5,0.5}
+\definecolor{codekeyword}{rgb}{0.9,0.4,0.7}
+\definecolor{codeCUDA}{rgb}{1.0,0.6,0.6}
+
+\lstdefinestyle{boxcuda}{
+    language=[ANSI]C++,
+    showstringspaces=false,
+    backgroundcolor=\color{white!10!black},
+    basicstyle=\lstfont{white},
+    identifierstyle=\lstfont{white},
+    keywordstyle=\lstfont{magenta!40!white},
+    numberstyle=\lstfont{white},
+    stringstyle=\lstfont{cyan},
+    commentstyle=\lstfont{yellow!30!white},
+    moredelim=[is][\lstfont{green!50!white}]{@}{@},
+    emph={
+        cudaMalloc, cudaFree,
+        cudaMallocHost, cudaFreeHost,
+        cudaMemcpyAsync, cudaMemcpy, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
+        cudaSuccess, cudaGetLastError, cudaGetErrorString,
+        cudaErrorMemoryAllocation, cudaError_t,
+        cudaOccupancyMaxPotentialBlockSize,
+        __global__, __shared__, __device__, __host__,
+        __syncthreads,
+        cudaEvent_t, cudaStream_t,
+        cudaEventCreate, cudaEventSynchronize, cudaEventDestroy,
+        cudaEventElapsedTime, cudaEventQuery, cudaEventRecord,
+        cudaStreamWaitEvent,
+        threadIdx, blockIdx, blockDim, gridDim,
+        cudaStream_t, cudaStreamCreate, cudaStreamDestroy,
+        cudaMemcpyDeviceToDevice, cudaMemcpyHostToHost,
+    },
+    emphstyle={\lstfont{green!50!white}},
+    breaklines=true
+}
+
+\lstdefinestyle{boxcudatiny}{
+    language=[ANSI]C++,
+    showstringspaces=false,
+    backgroundcolor=\color{white!10!black},
+    basicstyle=\lsttinyfont{white},
+    identifierstyle=\lsttinyfont{white},
+    keywordstyle=\lsttinyfont{magenta!40!white},
+    numberstyle=\lsttinyfont{white},
+    stringstyle=\lsttinyfont{cyan},
+    commentstyle=\lsttinyfont{yellow!30!white},
+    moredelim=[is][\lsttinyfont{green!50!white}]{@}{@},
+    emph={
+        cudaMalloc, cudaFree,
+        cudaMallocHost, cudaFreeHost,
+        cudaMemcpyAsync, cudaMemcpy, cudaMemcpyHostToDevice, cudaMemcpyDeviceToHost,
+        cudaSuccess, cudaGetLastError, cudaGetErrorString,
+        cudaErrorMemoryAllocation, cudaError_t,
+        cudaOccupancyMaxPotentialBlockSize,
+        __global__, __shared__, __device__, __host__,
+        __syncthreads,
+        cudaEvent_t, cudaStream_t,
+        cudaEventCreate, cudaEventSynchronize, cudaEventDestroy,
+        cudaEventElapsedTime, cudaEventQuery, cudaEventRecord,
+        cudaStreamWaitEvent,
+        threadIdx, blockIdx, blockDim, gridDim,
+        cudaStream_t, cudaStreamCreate, cudaStreamDestroy,
+        cudaMemcpyDeviceToDevice, cudaMemcpyHostToHost,
+    },
+    emphstyle={\lstfont{green!50!white}},
+    breaklines=true
+}
+
+\DeclareTextFontCommand{\emph}{\bfseries\color{blue!70!black}}
+
+% Please use the predifined colors:
+% cscsred, cscsgrey, cscsgreen, cscsblue, cscsbrown, cscspurple, cscsyellow, cscsblack, cscswhite
+
+\author{Ben Cumming, CSCS}
+\title{CUDA: MiniApp}
+\subtitle{}
+\date{\today}
+
+\begin{document}
+
+% TITLE SLIDE
+\cscstitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Unit Tests}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Unit testing is an essential development practice:
+    \begin{enumerate}
+        \item Write tests for features before implementing them;
+        \item Tests will pass when feature is finished;
+        \item If a feature is broken in the future, the test will catch it immediately;
+        \item Tests can also be used to catch performance regressions.
+    \end{enumerate}
+    The CUDA miniapp uses unit tests to validate the functions in \lst{linalg.cu}
+    \begin{itemize}
+        \item Initially all of the tests fail.
+        \item The tests are run each time the project is built.
+    \end{itemize}
+    Use an open source unit testing framework for serious work, e.g. Google Test.
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 1: Host-Device Data Synchronization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{info}{The \lst{Field} class implements storage of the 2D fields}
+        \begin{itemize}
+            \item It is extended for CUDA to store a copy of each field in both host and device memory;
+            \item The data is pointed to by the \lst{Field::host_pointer_} and \lst{Field::device_pointer_} members.
+        \end{itemize}
+    \end{info}
+    The host and device copies need to be synchronised:
+    \begin{enumerate}
+        \item \emph{Implement} the member functions that synchronize the host and device data fields in \lst{data.h}.
+        \item \emph{Update} the initial conditions on the device after computation in \lst{main.cu}.
+    \end{enumerate}
+    \begin{info}{}
+        Two of the unit tests will pass when this task is finished.
+    \end{info}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 2: Linear Algebra}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Implement all of the BLAS level 1 linear algebra kernels in \lst{linalg.cu}:
+    \begin{itemize}
+        \item Look for the \lst{TODO}s;
+        \item Each kernel is covered by a unit test;
+        \item You will have to do some research into the cublas routines.
+    \end{itemize}
+
+    \begin{info}{}
+        All of the unit tests will pass when this task is finished.
+    \end{info}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Step 3: Stencils}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Implement the stencils in \lst{operators.cu}
+    \begin{itemize}
+        \item Look for the TODOs.
+    \end{itemize}
+    The number of CG iterations and visualization can be used to validate results.
+    \begin{itemize}
+        \item \emph{Extra} can you use shared memory for the interior stencil?
+        \item \emph{Extra} can you design an implementation that uses shared memory to implement the interior, boundary and corner stencils in one, simplified kernel?
+    \end{itemize}
+    How does time to solution compare with that for the serial version?
+    \begin{itemize}
+        \item Compare at different resolutions:\\128$\times$128, 512$\times$512, 1024$\times$1024.
+    \end{itemize}
+\end{frame}
+
+\cscschapter{Thank you!}
+
+\end{document}

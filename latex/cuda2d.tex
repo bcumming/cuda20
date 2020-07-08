@@ -1,0 +1,150 @@
+\documentclass[aspectratio=43]{beamer}
+% Theme works only with a 4:3 aspect ratio
+\usetheme{CSCS}
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{pgfplots.groupplots,spy,patterns}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{tcolorbox}
+\usepackage{anyfontsize}
+\usepackage{xspace}
+\usepackage{graphicx}
+
+% define footer text
+\newcommand{\footlinetext}{Introduction to GPUs in HPC}
+
+% Select the image for the title page
+\newcommand{\picturetitle}{cscs_images/image5.pdf}
+
+% fonts for maths
+\usefonttheme{professionalfonts}
+\usefonttheme{serif}
+
+% source code listing
+\newcommand{\axpy}{{\ttfamily axpy}\xspace}
+
+% set indent to a more reasonable level (so that itemize can be used in columns)
+\setlength{\leftmargini}{20pt}
+
+\DeclareTextFontCommand{\emph}{\bfseries\color{blue!70!black}}
+
+% Please use the predifined colors:
+% cscsred, cscsgrey, cscsgreen, cscsblue, cscsbrown, cscspurple, cscsyellow, cscsblack, cscswhite
+
+\author{Ben Cumming, CSCS}
+\title{Introduction to GPUs in HPC}
+\subtitle{}
+\date{\today}
+
+\begin{document}
+
+% TITLE SLIDE
+\cscstitle
+
+%++++++++++++++++++++++++++++++++
+\cscschapter{2D and 3D Launch Configurations}
+%++++++++++++++++++++++++++++++++
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Launch Configuration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       \begin{itemize}
+           \item So far we have used one-dimensional launch configurations:
+           \begin{itemize}
+               \item Threads in blocks indexed using \lst{threadIdx.x}.
+               \item Blocks in a grid indexed using \lst{blockIdx.x}.
+           \end{itemize}
+           \item Many kernels map naturally onto 2D and 3D indexing:
+           \begin{itemize}
+               \item e.g. Matrix-matrix operations;
+               \item e.g. Stencils.
+           \end{itemize}
+       \end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Full Launch Configuration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        Kernel launch dimensions can be specified with \lst{dim3} structs
+        \begin{center}
+        \lst{kernel``<<<``dim3 grid_dim, dim3 block_dim``>>>``(...);}
+        \end{center}
+       \begin{itemize}
+           \item \lst{dim3.x}, \lst{dim3.y} and \lst{dim3.z} specify the launch dimensions;
+           \item Can be constructed with 1, 2 or 3 dimensions;
+           \item Unspecified \lst{dim3} dimensions are set to 1.
+       \end{itemize}
+
+   \begin{code}{launch configuration examples}
+        \begin{lstlisting}[style=boxcudatiny]
+// 1D: 128x1x1 for 128 threads
+dim3 a(128);
+// 2D: 16x8x1  for 128 threads
+dim3 b(16, 8);
+// 3D: 16x8x4  for 512 threads
+dim3 c(16, 8, 4);
+        \end{lstlisting}
+   \end{code}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    The \lst{threadIdx}, \lst{blockDim}, \lst{blockIdx} and \lst{gridDim} can be treated like 3D points via the \lst{.x}, \lst{.y} and \lst{.z} members.
+    \begin{code}{matrix addition example}
+        \begin{lstlisting}[style=boxcudatiny]
+__global__
+void MatAdd(float *A, float *B, float *C, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    if(i<n && j<n) {
+        auto pos = i + j*n;
+        C[pos] = A[pos] + B[pos];
+    }
+}
+int main() {
+    // ...
+    dim3 threadsPerBlock(16, 16);
+    dim3 numBlocks(n / threadsPerBlock.x, n / threadsPerBlock.y);
+    MatAdd@<<<@numBlocks, threadsPerBlock@>>>@(A, B, C);
+    // ...
+}
+        \end{lstlisting}
+   \end{code}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Exercise: Launch Configuration}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \begin{itemize}
+        \item Write the 2D diffusion stencil in \lstterm{diffusion/diffusion2d.cu}
+        \item Set up 2D launch configuration in the main loop
+        \item Draw a picture of the solution to validate it
+        \begin{itemize}
+            \item a plotting script is provided for visualizing the results
+            \item use a small domain for visualization
+        \end{itemize}
+    \end{itemize}
+
+    \begin{terminal}{}
+        \begin{lstlisting}[style=terminal]
+# build and run after writing code
+cd diffusion
+srun diffusion2d 8 1000000
+
+# do the plotting
+module load daint/gpu
+module load Python/2.7.12-CrayGNU-2016.11
+python plotting.py
+        \end{lstlisting}
+    \end{terminal}
+\end{frame}
+
+\end{document}

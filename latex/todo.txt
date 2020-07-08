@@ -1,0 +1,46 @@
+- slides
+    + proof and upload
+        + introduction
+        + porting
+        + kernels
+        + shared
+        - CUB
+        - 2D
+        - MPI
+        - async
+
+    - porting slides
+        - tools (nvprof, nvvp, cudagdb, etc)
+        + libraries (cublas, thrust, cub, trilinos, etc)
+        + languages (openacc, cuda, etc)
+        + ahmdahls law
+        + CUDA overview slides
+            + CUDA is C++ superset
+            + nvcc
+            + documentation reference
+
+    + throughput vs. latency optimization slide in introduction
+
+    - shared memory
+        - warp intrinsics
+        - CUB
+        - CUB exercise
+        - CUB example for showing inline in slides (atomics vs exclusive scan for stackification)
+
+    - MPI slides
+        - split from cuda4 deck
+        - beautify slides
+        - add maximum dimension information?
+        - test exercise
+            - shared memory?
+            - slurm launch script
+            - visualization
+
+    - asynch slides
+        - use the nvprof stupid!
+        - example of cudaFree vs multiple threads.
+
+- set up repository
+    + create repo
+    + add directory structure
+    - add readme
