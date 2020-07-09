@@ -1,1 +1,6 @@
 *.swp
+a.out
+compile_flags.txt
+dot
+hist
+string_reverse
