@@ -88,7 +88,7 @@
         \begin{itemize}
             \item Languages designed for GPU programming.
             \item Maximum flexibility and performance.
-            \item For example: CUDA, OpenCL and Sycl.
+            \item For example: CUDA, OpenCL and SYCL.
         \end{itemize}
     \end{info}
 \end{frame}
@@ -202,6 +202,17 @@
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Compiling CUDA with Clang}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Clang now supports compilation of CUDA code, targetting NVIDIA GPUs.
+    \begin{itemize}
+        \item Performance of the generated code is on par with nvcc.
+        \item It is a good idea to test your CUDA code with both Clang and nvcc.
+        \item The most recent version of the Cray C++ compiler on Daint is Clang based.
+    \end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}[fragile]{Compiling CUDA}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Example CUDA compilation
@@ -228,6 +239,22 @@
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Compiling CUDA with Clang}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Compilation with Clang uses different gpu-specific options:
+
+    \vspace{20pt}
+    \begin{terminal}{}
+    \begin{lstlisting}[style=terminal]
+> CC -xcuda --cuda-gpu-arch=sm_60 --cuda-path=$CUDA_ROOT
+          -O2 -std=c++11 -g -o foo foo.cu
+    \end{lstlisting}
+    \end{terminal}
+    \vspace{20pt}
+    Where \lst{CC} is the Cray compiler wrapper on Daint.
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}[fragile]{Exercise: Getting Started on Piz Daint}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     In this exercise we will get introduced to Daint and make sure that everybody is set up.
@@ -238,10 +265,10 @@
 > ssh -X <your account name>@daint
 
 # get one node on the course reservation for 60 minutes
-> salloc -Cgpu --reservation=course -t60
+> salloc -Cgpu --reservation=summer_school -t60
 
 # go to scratch and get the course material
-> cd $SCRATCH/SummerSchool2019
+> cd $SCRATCH/SummerSchool2020
 > git pull
 
 # compile and test the demo
