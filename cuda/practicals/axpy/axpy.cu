@@ -51,9 +51,9 @@ int main(int argc, char** argv) {
     auto time_D2H = get_time() - start;
 
     std::cout << "-------\ntimings\n-------\n";
-    std::cout << "H2D  : " << time_H2D << " s\n";
-    std::cout << "D2H  : " << time_D2H << " s\n";
-    std::cout << "axpy : " << time_axpy << " s\n";
+    std::cout << "H2D:  " << time_H2D << " s\n";
+    std::cout << "D2H:  " << time_D2H << " s\n";
+    std::cout << "axpy: " << time_axpy << " s\n";
     std::cout << std::endl;
     std::cout << "total: " << time_axpy+time_H2D+time_D2H << " s\n";
     std::cout << std::endl;
@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
     std::cout << "-------\nbandwidth\n-------\n";
     auto H2D_BW = size_in_bytes/1e6*2 / time_H2D;
     auto D2H_BW = size_in_bytes/1e6   / time_D2H;
-    std::cout << "H2D BW : " << H2D_BW << " MB/s\n";
-    std::cout << "D2H BW : " << D2H_BW << " MB/s\n";
+    std::cout << "H2D BW:  " << H2D_BW << " MB/s\n";
+    std::cout << "D2H BW:  " << D2H_BW << " MB/s\n";
 
     // check for errors
     auto errors = 0;

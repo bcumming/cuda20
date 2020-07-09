@@ -4,9 +4,13 @@
 
 #include "util.hpp"
 
-// TODO CUDA kernel implementing axpy
-//      y = y + alpha*x
-//void axpy(int n, double alpha, const double* x, double* y)
+__global__
+void axpy(int n, double alpha, const double* x, double* y) {
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i<n) {
+        y[i] = y[i] + alpha*x[i];
+    }
+}
 
 int main(int argc, char** argv) {
     size_t pow = read_arg(argc, argv, 1, 16);
@@ -30,14 +34,16 @@ int main(int argc, char** argv) {
     copy_to_device<double>(y_host, y_device, n);
     auto time_H2D = get_time() - start;
 
-    // TODO calculate grid dimensions
-    // IGNORE for the first kernel writing exercise
+    // calculate grid dimensions
+    int num_threads = 128;
+    int num_blocks = (n-1)/num_threads + 1;
 
     // synchronize the host and device so that the timings are accurate
     cudaDeviceSynchronize();
 
     start = get_time();
-    // TODO launch kernel (alpha=2.0)
+
+    axpy<<<num_blocks, num_threads>>>(n, 2, x_device, y_device);
 
     cudaDeviceSynchronize();
     auto time_axpy = get_time() - start;
@@ -51,9 +57,9 @@ int main(int argc, char** argv) {
     auto time_D2H = get_time() - start;
 
     std::cout << "-------\ntimings\n-------\n";
-    std::cout << "H2D  : " << time_H2D << " s\n";
-    std::cout << "D2H  : " << time_D2H << " s\n";
-    std::cout << "axpy : " << time_axpy << " s\n";
+    std::cout << "H2D:  " << time_H2D << " s\n";
+    std::cout << "D2H:  " << time_D2H << " s\n";
+    std::cout << "axpy: " << time_axpy << " s\n";
     std::cout << std::endl;
     std::cout << "total: " << time_axpy+time_H2D+time_D2H << " s\n";
     std::cout << std::endl;
@@ -61,8 +67,8 @@ int main(int argc, char** argv) {
     std::cout << "-------\nbandwidth\n-------\n";
     auto H2D_BW = size_in_bytes/1e6*2 / time_H2D;
     auto D2H_BW = size_in_bytes/1e6   / time_D2H;
-    std::cout << "H2D BW : " << H2D_BW << " MB/s\n";
-    std::cout << "D2H BW : " << D2H_BW << " MB/s\n";
+    std::cout << "H2D BW:  " << H2D_BW << " MB/s\n";
+    std::cout << "D2H BW:  " << D2H_BW << " MB/s\n";
 
     // check for errors
     auto errors = 0;

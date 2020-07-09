@@ -2,3 +2,5 @@
 -nocudalib
 --cuda-gpu-arch=sm_60
 --std=c++11
+-I `pwd`/include
+$CRAY_CUDATOOLKIT_INCLUDE_OPTS
