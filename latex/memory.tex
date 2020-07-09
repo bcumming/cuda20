@@ -61,7 +61,7 @@
                 \item The host CPU has 64 GB of DDR4 \emph{host memory}
                 \item The P100 GPU has 16 GB of HBM2 \emph{device memory}
             \end{itemize}
-        \item Kernels executing on the GPU only have access to device memory
+        \item Kernels executing on the GPU only have fast access to device memory
             \begin{itemize}
                 \item Kernel accesses to host memory are copied to GPU memory first over the (slow) PCIe connection.
             \end{itemize}
@@ -108,6 +108,7 @@
             \begin{itemize}
                 \item Not suitable as the default choice of memory management.
                 \item Can lead to negative performance and subtle bugs.
+                \item Host-device memory coherency will improve in future GPUs.
             \end{itemize}
         \end{info}
 \end{frame}
@@ -165,14 +166,12 @@ cudaFree(v);                  // free memory
 > module load daint-gpu
 > module swap PrgEnv-cray PrgEnv-gnu
 > module load cudatoolkit
-> gcc --version
-gcc (GCC) 6.2.0 20160822 (Cray Inc.)
+> gcc --version # nvcc uses gcc:
+gcc (GCC) 8.3.0 20190222 (Cray Inc.)
 ...
-
 > nvcc --version
-nvcc: NVIDIA (R) Cuda compiler driver
 ...
-Cuda compilation tools, release 9.1, V9.1.85
+Cuda compilation tools, release 10.1, V10.1.105
     \end{lstlisting}
 \end{frame}
 
