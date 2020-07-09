@@ -1,0 +1,4 @@
+-xcuda
+-nocudalib
+--cuda-gpu-arch=sm_60
+--std=c++11
