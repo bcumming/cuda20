@@ -519,7 +519,7 @@ __global__ void blur_twice(const double *in, double* out, int n) {
   };
 
   if(gid<n-2) {
-    buffer[li] = blur(gi, in);
+    buffer[lid] = blur(gid, in);
     if(threadIdx.x==0) {
         buffer[1]            = blur(block_start+1, in);
         buffer[blockDim.x+2] = blur(block_end+2, in);
@@ -527,7 +527,7 @@ __global__ void blur_twice(const double *in, double* out, int n) {
 
     __syncthreads();
 
-    out[gi] = blur(li, buffer);
+    out[gid] = blur(lid, buffer);
   }
 }
         \end{lstlisting}
@@ -764,7 +764,7 @@ int main(void) {
 
     \emph{Note}: All threads in a block must reach the \lst{__syncthreads()}
     \begin{itemize}
-        \item otherwise strange things happen!
+        \item otherwise strange things (may) happen!
     \end{itemize}
 \end{frame}
 
@@ -808,7 +808,7 @@ int main(void) {
     An \emph{atomic memory operation} is an uninterruptable read-modify-write memory operation:
     \begin{itemize}
         \item Serializes contentious updates from multiple threads;
-        \item The order in which concurrent atomic updates are performed is not defined;
+        \item \emph{The order} in which concurrent atomic updates are performed \emph{is not defined};
         \item However none of the atomic updates will be lost.
     \end{itemize}
     \vspace{-0.3cm}
@@ -879,7 +879,7 @@ __device__ int atomicAdd(int *p, int v) {
     \begin{itemize}
         \item Attempt to use shared memory and structure algorithms to avoid synchronization wherever possible.
         \item Try performing operation at warp level or block level.
-        \item Use atomics for infrequent, sparse and/pr unpredictable global communication.
+        \item Use atomics for infrequent, sparse and/or unpredictable global communication.
     \end{itemize}
 \end{frame}
 
