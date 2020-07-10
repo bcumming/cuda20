@@ -1,21 +1,6 @@
 # by default select gcc
-CXX=g++
+CXX=CC
 CXXFLAGS=-O3 -fopenmp
-
-# if on a cray system, set flags according to the compilation enviroment
-ifeq ($(PE_ENV),GNU)
-	CXX=CC
-	CXXFLAGS=-O3 -fopenmp
-endif
-ifeq ($(PE_ENV),CRAY)
-	CXX=CC
-	CXXFLAGS=-O3
-	CXXFLAGS+=-h list=a
-endif
-ifeq ($(PE_ENV),INTEL)
-	CXX=CC
-	CXXFLAGS=-O3 -qopenmp
-endif
 
 SOURCES = stats.cpp data.cpp operators.cpp linalg.cpp
 HEADERS = stats.h   data.h   operators.h   linalg.h
@@ -47,4 +32,3 @@ clean:
 	rm -f *.lst
 	rm -f output.*
 	rm -f cmp tmp
-	rm -f main.cray main.gnu main.intel
