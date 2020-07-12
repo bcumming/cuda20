@@ -43,8 +43,14 @@ int main(int argc, char** argv) {
     double* y      = malloc_host<double>(N, 0.0);
     #endif
 
+    // synchronize GPU
+    cudaDeviceSynchronize();
+
     // copy to device
     cuda_stream stream; // default stream
+
+    // perform a dummy copy before inserting the event to start timing.
+    copy_to_device_async<double>(y_host, y_device, N, stream.stream());
 
     auto start_event = stream.enqueue_event();
     copy_to_device_async<double>(y_host, y_device, N, stream.stream());
@@ -55,7 +61,7 @@ int main(int argc, char** argv) {
     auto block_dim = 128ul;
     auto grid_dim = (N-1)/block_dim + 1;
 
-    axpy<<<grid_dim, block_dim>>> (N, 2.0, x_device, y_device);
+    axpy<<<grid_dim, block_dim, 0, stream.stream()>>> (N, 2.0, x_device, y_device);
     auto kernel_event = stream.enqueue_event();
 
     // copy result back to host
