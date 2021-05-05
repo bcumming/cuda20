@@ -246,7 +246,7 @@ add_gpu@<<<@1,n@>>>@(a, b, n);
         \begin{itemize}
             \item Threads in a block can synchronize and share resources
             \item This does not scale past a certain number of cores/threads
-            \item EACH P100 GPU \emph{streaming multiprocessor} (SMX) has 64 CUDA cores, and can run 2028 threads
+            \item EACH P100 GPU \emph{streaming multiprocessor} (SMX) has 64 CUDA cores, and can run 2048 threads
             \item Threads in a block run on the same SMX, with shared resources and thread cooperation
             \item Work is broken into blocks, which are distributed over the 56 SMXs on the GPU.
         \end{itemize}
