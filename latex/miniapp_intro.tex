@@ -402,8 +402,8 @@ end
 \begin{frame}[fragile]{Testing the Code}
     Get the code and compile miniapp
 \begin{lstlisting}[style=terminal]
-> git clone git<at>github.com:eth-cscs/SummerSchool2019.git
-> cd SummerSchool2019/miniapp/serial
+> git clone git<at>github.com:eth-cscs/SummerSchool2020.git
+> cd SummerSchool2020/miniapp/openmp
 > module load daint-gpu
 > module swap PrgEnv-cray PrgEnv-gnu
 > make
@@ -453,8 +453,9 @@ simulation took 1.07502 seconds
         \item Now is a good time to test if X-windows is working.
     \end{itemize}
 \begin{lstlisting}[style=terminal]
-> module load PyExtensions/2.7.15.1-CrayGNU-18.08
-> python2 ../../scripts/plotting.py
+> module load daint-gpu
+> module load PyExtensions/3.6.5.7-CrayGNU-19.10
+> python3 ./plotting.py -s  # -s to get image in pop up
 \end{lstlisting}
 \end{frame}
 
