@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #coding: utf-8
 
 import argparse
@@ -113,4 +113,4 @@ elif args.image == 'block':
 
 txt += print_footer()
 
-print txt
+print(txt)
